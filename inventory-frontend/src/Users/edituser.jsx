@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 export default function EditUserModal({ user, isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -47,22 +48,25 @@ export default function EditUserModal({ user, isOpen, onClose, onSave }) {
   const handleResetPassword = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:5000/users/${user.id}/reset-password`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password: "lxpassword" }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to reset password");
-      alert("Password reset to lxpassword");
+      const res = await fetch(`http://localhost:5000/users/${user.id}/reset-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: "lxpassword",
+          newPassword: "lxpassword",
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to reset password");
+      }
+      toast.success("Password reset to lxpassword");
     } catch (err) {
       console.error(err);
-      alert("Error resetting password");
+      toast.error("Error resetting password");
     }
   };
 
@@ -98,7 +102,10 @@ export default function EditUserModal({ user, isOpen, onClose, onSave }) {
         </button>
 
         <div className="flex justify-end space-x-3">
-          <button onClick={onClose} className="px-4 py-2 border rounded cursor-pointer">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded cursor-pointer"
+          >
             Cancel
           </button>
           <button

@@ -213,6 +213,43 @@ app.put("/users/change-password", authenticateToken, async (req, res) => {
   }
 });
 
+// Admin-only password reset — always sets to "lxpassword"
+app.put("/users/:id/reset-password", authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params; // target user ID
+
+    // Hardcoded default password
+    const defaultPassword = "lxpassword";
+    const hashed = await bcrypt.hash(defaultPassword, 10);
+
+    const updateResult = await query(
+      "UPDATE users SET password = $1 WHERE id = $2 RETURNING id",
+      [hashed, id]
+    );
+
+    if (updateResult.rowCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Optional: Prevent resetting your own account this way
+    if (Number(id) === req.user.id) {
+      return res.status(403).json({ error: "Cannot reset your own password via this endpoint" });
+    }
+
+    // Log the action
+    addNotification(
+      `Admin ${req.user.employee_name} reset password for user ID ${id} to default`,
+      "security",
+      "Lock"
+    );
+
+    return res.json({ message: "Password reset to default (lxpassword)" });
+  } catch (err) {
+    console.error("Admin password reset error:", err);
+    return res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
 // ==========================
 //     UPLOAD AVATAR
 // ==========================
