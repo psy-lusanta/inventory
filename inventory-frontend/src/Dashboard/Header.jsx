@@ -23,13 +23,12 @@ function Header({
   const { tableName } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  let role = null;
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "viewer";
 
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!tableName) {
-      // Static pages
       const titles = {
         "/dashboard": "Dashboard",
         "/reports": "Reports",
@@ -43,7 +42,6 @@ function Header({
       return;
     }
 
-    // Dynamic table page — fetch real display name
     const fetchDisplayName = async () => {
       try {
         const res = await fetch(
@@ -86,8 +84,7 @@ function Header({
 
     const handleClickOutside = (event) => {
       const dropdown = document.getElementById("profile-dropdown");
-      const profileButton = document.querySelector("[data-profile-button]"); // Add data attribute below
-
+      const profileButton = document.querySelector("[data-profile-button]");
       if (
         dropdown &&
         !dropdown.contains(event.target) &&
@@ -105,7 +102,6 @@ function Header({
   return (
     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blue-xl border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Left Side */}
         <div className="flex items-center space-x-4">
           <button
             className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -134,15 +130,22 @@ function Header({
         {/*SEARCH BAR*/}
         <GlobalSearch />
 
-        {/* Right side */}
         <div className="flex items-center space-x-3">
-          {/* New Table Button */}
           <button
-            className="hidden lg:flex items-center space-x-2 py-2 px-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-full text-white shadow-lg cursor-pointer hover:opacity-90 transform transition-all duration-200 ease-in-out active:translate-y-1 active:scale-95 active:shadow-inner focus:outline-none"
-            onClick={() => setShowNewTableModal(true)}
+            disabled={role === "viewer"}
+            onClick={
+              role !== "viewer" ? () => setShowNewTableModal(true) : undefined
+            }
+            className={`hidden lg:flex items-center space-x-2 py-2 px-4 rounded-full text-white shadow-lg transform transition-all duration-200 ease-in-out focus:outline-none ${
+              role === "viewer"
+                ? "bg-gray-400 cursor-not-allowed opacity-60"
+                : "bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 cursor-pointer hover:opacity-90 active:translate-y-1 active:scale-95 active:shadow-inner"
+            }`}
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">New Table</span>
+            <span className="text-sm font-medium">
+              {role === "viewer" ? "New Table (View Only)" : "New Table"}
+            </span>
           </button>
 
           {/* Notification */}
@@ -200,7 +203,9 @@ function Header({
                   onClick={() => {
                     setProfileOpen(false);
                     localStorage.removeItem("token");
-                    window.dispatchEvent(new Event("storage", { key: "token" }));
+                    window.dispatchEvent(
+                      new Event("storage", { key: "token" }),
+                    );
                     navigate("/login");
                   }}
                 >

@@ -61,7 +61,6 @@ function AddSubTableModal({
           : [{ name: "", type: "text" }]
       );
     } else if (isOpen && !initialData) {
-      // Create mode
       setTableName("");
       setColumns([{ name: "", type: "text" }]);
     }
@@ -90,7 +89,7 @@ function AddSubTableModal({
 
         <input
           type="text"
-          placeholder="Sub-table name (e.g. Production, Backup)"
+          placeholder="Sub-table name"
           className="w-full px-4 py-3 border text-amber-50 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
           value={tableName}
           onChange={(e) => setTableName(e.target.value)}
@@ -107,16 +106,6 @@ function AddSubTableModal({
                 value={col.name}
                 onChange={(e) => updateColumn(index, "name", e.target.value)}
               />
-              <select
-                value={col.type}
-                onChange={(e) => updateColumn(index, "type", e.target.value)}
-                className="px-3 py-2 border rounded-lg"
-              >
-                <option value="text">Text</option>
-                <option value="number">Number</option>
-                <option value="date">Date</option>
-                <option value="boolean">Boolean</option>
-              </select>
               {columns.length > 1 && (
                 <button
                   onClick={() => removeColumn(index)}

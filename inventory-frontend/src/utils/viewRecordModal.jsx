@@ -1,13 +1,13 @@
 import AssetTagPrint from "../Asset Tag Printing/assetTagPrint";
+import { X } from "lucide-react";
 
-export default function ViewRecordModal({ isOpen, onClose, row, columns }) {
+function ViewRecordModal({ isOpen, onClose, row, columns }) {
   if (!isOpen || !row) return null;
 
   function formatDate(value) {
     if (!value) return "";
     const d = new Date(value);
     if (isNaN(d)) return value;
-
     return d.toLocaleString("en-US", {
       month: "long",
       day: "2-digit",
@@ -18,31 +18,52 @@ export default function ViewRecordModal({ isOpen, onClose, row, columns }) {
     });
   }
 
+  const displayColumns = columns.filter(
+    (col) => !["created_at", "created_by", "updated_at", "updated_by"].includes(col.name.toLowerCase())
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[9999]">
-      <div className="bg-white p-6 rounded-xl w-full max-w-lg shadow-xl">
-        <h2 className="text-xl font-semibold mb-4">Record Details</h2>
-
-        <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
-          {columns.map((col) => (
-            <div key={col.name}>
-              <p className="text-xs text-gray-500 font-semibold">
-                {col.name.replace(/_/g, " ").toUpperCase()}
-              </p>
-              <div className="border px-3 py-2 rounded-lg bg-gray-100">
-                {col.name.endsWith("_at")
-                  ? formatDate(row[col.name])
-                  : row[col.name]}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 flex justify-between">
-          <AssetTagPrint row={row} />
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-5 dark:border-slate-700 flex items-center justify-between text-white">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Record Details</h2>
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-red-600 text-white rounded-lg cursor-pointer"
+            className="p-2 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+          >
+            <X size={24} className="text-white" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {displayColumns.map((col) => {
+              const value = row[col.name];
+              const displayValue =
+                col.name.toLowerCase().endsWith("_at")
+                  ? formatDate(value)
+                  : value ?? "—";
+
+              return (
+                <div key={col.name} className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                    {col.name.replace(/_/g, " ").toUpperCase()}
+                  </label>
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-gray-100">
+                    {displayValue}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="px-6 py-5 flex justify-end items-center gap-4">
+          <AssetTagPrint row={row} />
+
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -51,3 +72,5 @@ export default function ViewRecordModal({ isOpen, onClose, row, columns }) {
     </div>
   );
 }
+
+export default ViewRecordModal;

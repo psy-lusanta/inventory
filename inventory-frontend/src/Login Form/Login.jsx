@@ -11,23 +11,45 @@ function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await axios.post("http://localhost:5000/auth/login", {
-      username,
-      password,
-    });
-    
-    localStorage.setItem("token", res.data.token);
-    
-    window.dispatchEvent(new StorageEvent("storage", { key: "token" }));
-    window.dispatchEvent(new CustomEvent("tokenUpdated"));  
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:5000/auth/login", {
+        username,
+        password,
+      });
 
-    navigate("/dashboard");
-  } catch (err) {
-    setError("Invalid username or password");
-  }
-};
+      const {
+        token,
+        id,
+        username: userUsername,
+        role,
+        employee_name,
+        avatar_url,
+      } = res.data;
+
+      // Save token
+      localStorage.setItem("token", token);
+
+      // Save full user object
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id,
+          username: userUsername,
+          role,
+          employee_name,
+          avatar_url: avatar_url || "https://i.pravatar.cc/300",
+        }),
+      );
+
+      window.dispatchEvent(new StorageEvent("storage", { key: "token" }));
+      window.dispatchEvent(new CustomEvent("tokenUpdated"));
+
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Invalid username or password");
+    }
+  };
 
   return (
     <>

@@ -7,7 +7,7 @@ const { query, pool } = require("../../config/db.js");
 router.get("/tables", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT table_name, display_name, parent_group AS icon FROM inventory_meta.tablename_icon
+      SELECT table_name, display_name, icon FROM inventory_meta.tablename_icon
       ORDER BY table_name ASC;
     `);
 

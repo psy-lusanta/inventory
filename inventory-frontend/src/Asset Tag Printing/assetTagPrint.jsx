@@ -27,6 +27,9 @@ function AssetTagPrint({ row }) {
   const [open, setOpen] = useState(false);
   const qrRef = useRef(null);
 
+  // Get role from localStorage (same as DynamicTablePage)
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "viewer";
+
   if (!row) return null;
 
   const handlePrint = () => {
@@ -42,12 +45,7 @@ function AssetTagPrint({ row }) {
         <head>
           <title>Asset Tag</title>
           <style>
-            body {
-              margin: 0;
-              padding: 0;
-              font-family: Arial, sans-serif;
-              background: #f0f0f0;
-            }
+            body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #f0f0f0; }
             .tag {
               width: 200px;
               border: 2px solid black;
@@ -56,32 +54,16 @@ function AssetTagPrint({ row }) {
               margin: 20px auto;
               background: white;
             }
-            h3 {
-              font-size: 14px;
-              font-weight: bold;
-            }
-            img {
-              max-width: 200px;
-              display: block;
-            }
-            .asset-id {
-              font-weight: bold;
-              font-size: 18px;
-            }
+            h3 { font-size: 14px; font-weight: bold; }
+            img { max-width: 200px; display: block; }
+            .asset-id { font-weight: bold; font-size: 18px; }
           </style>
         </head>
         <body>
           <div class="tag">
-            <h3>
-              PLEASE DO NOT REMOVE!<br/>
-              PROPERTY OF LXII
-            </h3>
-
+            <h3>PLEASE DO NOT REMOVE!<br/>PROPERTY OF LXII</h3>
             <img src="${qrImage}" alt="QR Code" />
-
-            <div class="asset-id">
-              ${row.asset_tag || "ASSET TAG"}
-            </div>
+            <div class="asset-id">${row.asset_tag || "ASSET TAG"}</div>
           </div>
 
           <script>
@@ -102,21 +84,23 @@ function AssetTagPrint({ row }) {
     }, 300);
   };
 
+  if (role === "viewer") {
+    return null; 
+  }
+
   return (
     <>
-      {/* Trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="px-5 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
+        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors"
       >
         View QR Code
       </button>
 
-      {/* Modal */}
       {open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-xl p-6 w-[320px] shadow-xl text-center">
-            <h3 className="font-semibold mb-4">Asset QR Code</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-[320px] shadow-xl text-center">
+            <h3 className="font-semibold mb-4 text-slate-800 dark:text-white">Asset Tag QR Code</h3>
 
             <div ref={qrRef} className="flex justify-center mb-6">
               <QRCodeCanvas
@@ -129,14 +113,14 @@ function AssetTagPrint({ row }) {
             <div className="flex justify-between gap-2">
               <button
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 bg-gray-400 text-white rounded-lg"
+                className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg transition-colors cursor-pointer"
               >
                 Close
               </button>
 
               <button
                 onClick={handlePrint}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors cursor-pointer"
               >
                 Print Asset Tag
               </button>

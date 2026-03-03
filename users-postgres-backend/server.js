@@ -4,7 +4,7 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { generateToken } = require("./middleware/generateToken.js");
-const { query, pool } = require("./config/db.js"); // PostgreSQL pool
+const { query, pool } = require("./config/db.js"); 
 const {
   authenticateToken,
   requireAdmin,

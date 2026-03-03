@@ -22,6 +22,7 @@ import DeleteRecordModal from "./deleteRecordModal.jsx";
 function DynamicTablePage() {
   const { tableName } = useParams();
   const { triggerAppReload } = useOutletContext();
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "viewer";
 
   const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -112,15 +113,15 @@ function DynamicTablePage() {
     if (searchTerm.trim()) {
       filtered = filtered.filter((row) =>
         Object.values(row).some((value) =>
-          value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
+          value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
       );
     }
 
     // Status filter
     if (statusFilter) {
       filtered = filtered.filter(
-        (row) => row.status?.toLowerCase() === statusFilter.toLowerCase()
+        (row) => row.status?.toLowerCase() === statusFilter.toLowerCase(),
       );
     }
 
@@ -142,7 +143,7 @@ function DynamicTablePage() {
   const visibleColumns = columns.filter(
     (col) =>
       visibleColumnNames.includes(col.name) &&
-      !hiddenColumns.includes(col.name.toLowerCase())
+      !hiddenColumns.includes(col.name.toLowerCase()),
   );
 
   useEffect(() => {
@@ -157,7 +158,7 @@ function DynamicTablePage() {
         .map((c) => c.name)
         .filter(
           (name) =>
-            !name.endsWith("_at") && !name.endsWith("_by") && name !== "status"
+            !name.endsWith("_at") && !name.endsWith("_by") && name !== "status",
         );
 
       setVisibleColumnNames(defaults);
@@ -193,7 +194,7 @@ function DynamicTablePage() {
 
   const paginatedTable = filteredData.slice(
     (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+    currentPage * rowsPerPage,
   );
 
   if (loading) {
@@ -233,13 +234,20 @@ function DynamicTablePage() {
       {/* SEARCH BAR */}
       <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 flex justify-between items-center gap-4">
         <div className="mt-4">
-          <button
-            className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow active:scale-95 cursor-pointer"
-            onClick={() => setIsInputModalOpen(true)}
-          >
-            <Plus size={18} />
-            <span>Add Record</span>
-          </button>
+          {role !== "viewer" ? (
+            <button
+              className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow active:scale-95 cursor-pointer"
+              onClick={() => setIsInputModalOpen(true)}
+            >
+              <Plus size={18} />
+              <span>Add Record</span>
+            </button>
+          ) : (
+            <div className="flex items-center space-x-2 px-6 py-3 bg-gray-300 text-gray-600 rounded-xl font-medium cursor-not-allowed">
+              <Plus size={18} />
+              <span>View Only</span>
+            </div>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
           <div className="relative">
@@ -310,7 +318,7 @@ function DynamicTablePage() {
                                 !col.name.endsWith("asset_tag") &&
                                 !col.name.endsWith("_at") &&
                                 !col.name.endsWith("_by") &&
-                                !col.name.endsWith("status")
+                                !col.name.endsWith("status"),
                             )
                             .map((col) => (
                               <label
@@ -320,13 +328,13 @@ function DynamicTablePage() {
                                 <input
                                   type="checkbox"
                                   checked={visibleColumnNames.includes(
-                                    col.name
+                                    col.name,
                                   )}
                                   onChange={() => {
                                     setVisibleColumnNames((prev) =>
                                       prev.includes(col.name)
                                         ? prev.filter((c) => c !== col.name)
-                                        : [...prev, col.name]
+                                        : [...prev, col.name],
                                     );
                                   }}
                                   className="rounded border-gray-300"
@@ -339,7 +347,7 @@ function DynamicTablePage() {
                         </div>
                       </div>
                     </div>,
-                    document.body
+                    document.body,
                   )}
               </th>
             </tr>
@@ -370,7 +378,7 @@ function DynamicTablePage() {
                     <div className="flex items-center justify-center">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${getColorStatus(
-                          row.status
+                          row.status,
                         )}`}
                       >
                         {formatStatus(row.status)}
@@ -379,27 +387,34 @@ function DynamicTablePage() {
                   </td>
 
                   <td className="px-8 py-4 text-center align-middle">
-                    <button
-                      className="p-2 text-purple-500 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditRow(row);
-                        setOriginalAssetTag(row.asset_tag);
-                        setIsEditModalOpen(true);
-                      }}
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteRow(row);
-                        setIsDeleteModalOpen(true);
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {role !== "viewer" ? (
+                      <>
+                        <button
+                          className="p-2 text-purple-500 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditRow(row);
+                            setOriginalAssetTag(row.asset_tag);
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <Edit3 size={16} />
+                        </button>
+
+                        <button
+                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteRow(row);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-gray-400 text-sm">View Only</span>
+                    )}
                   </td>
                   <td></td>
                 </tr>
@@ -464,7 +479,7 @@ function DynamicTablePage() {
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
                 body: JSON.stringify(data),
-              }
+              },
             );
 
             let errorMessage = "Failed to add record";
@@ -481,7 +496,7 @@ function DynamicTablePage() {
                 errorMessage.includes("Asset tag already exists")
               ) {
                 toast.error(
-                  "Asset tag already exists. Please use a unique asset tag."
+                  "Asset tag already exists. Please use a unique asset tag.",
                 );
               } else {
                 toast.error(errorMessage);
@@ -516,7 +531,7 @@ function DynamicTablePage() {
                 },
                 body: JSON.stringify(updatedData),
                 displayName: currentTableDisplayName,
-              }
+              },
             );
 
             if (!res.ok) {
@@ -532,7 +547,7 @@ function DynamicTablePage() {
                 errorMessage.includes("Asset tag already exists")
               ) {
                 toast.error(
-                  "Asset tag already exists. Please use a unique asset tag."
+                  "Asset tag already exists. Please use a unique asset tag.",
                 );
               } else {
                 toast.error(errorMessage);
@@ -555,24 +570,34 @@ function DynamicTablePage() {
         row={deleteRow}
         tableName={tableName}
         onDelete={async (row) => {
-          await fetch(
-            `http://localhost:5000/api/inventory/delete/${tableName}/${row.asset_tag}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/inventory/delete/${tableName}/${row.asset_tag}`,
+              {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ displayName: currentTableDisplayName }),
               },
-              body: JSON.stringify({ displayName: currentTableDisplayName }),
-            }
-          );
-          const result = await res.json();
+            );
 
-          if (!res.ok) {
-            throw new Error(result.error || "Failed to delete record");
+            const result = await res.json();
+
+            if (!res.ok) {
+              throw new Error(result.error || "Failed to delete record");
+            }
+
+            toast.success(result.message || "Record deleted successfully");
+            loadTable(); // ← now this will run
+            triggerAppReload?.();
+          } catch (err) {
+            console.error("Delete error:", err);
+            toast.error(err.message || "Failed to delete record");
+          } finally {
+            setIsDeleteModalOpen(false); 
           }
-          toast.success(result.message || "Record deleted successfully");
-          loadTable();
-          triggerAppReload?.();
         }}
       />
 

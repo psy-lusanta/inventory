@@ -95,6 +95,13 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
     fetchAllData();
   }, [reload]);
 
+  const getPanelTitle = () => {
+    const userRole = user?.role?.toLowerCase() || "viewer";
+    if (userRole === "administrator") return "Admin Panel";
+    if (userRole === "viewer") return "Viewer Panel";
+    return "User Panel";
+  };
+
   const menuItems = [
     {
       id: "dashboard",
@@ -144,10 +151,10 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
 
     // Check current pin/chart status
     const currentPinned = JSON.parse(
-      localStorage.getItem("pinnedTables") || "[]"
+      localStorage.getItem("pinnedTables") || "[]",
     );
     const currentChart = JSON.parse(
-      localStorage.getItem("chartTables") || "[]"
+      localStorage.getItem("chartTables") || "[]",
     );
 
     const isPinned = currentPinned.some((p) => p.table_name === tableName);
@@ -206,7 +213,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
       if (!tableInfo) return;
 
       const chartTables = JSON.parse(
-        localStorage.getItem("chartTables") || "[]"
+        localStorage.getItem("chartTables") || "[]",
       );
 
       const exists = chartTables.some((t) => t.table_name === tableName);
@@ -246,7 +253,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
     if (action === "add-submenu") {
       const tableInfo = schemas.find((t) => t.table_name === tableName);
       setParentDisplayName(
-        tableInfo?.display_name || capitalizeFirst(tableName)
+        tableInfo?.display_name || capitalizeFirst(tableName),
       );
       setAddSubmenuParent(contextMenu.itemId);
       setSubmenuModalOpen(true);
@@ -260,7 +267,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
+          },
         );
         if (!res.ok) throw new Error("Failed to load table data");
 
@@ -294,7 +301,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
 
   const handleSaveSubTable = async (
     { tableName, displayName, columns },
-    isEdit = false
+    isEdit = false,
   ) => {
     if (!tableName?.trim()) {
       toast.error("Table name is required");
@@ -322,7 +329,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
         `${API_URL}/api/inventory/tables/${parentTableName}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+        },
       );
       if (!checkRes.ok) {
         toast.error("Failed to check parent table");
@@ -331,7 +338,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
       const data = await checkRes.json();
       if (data.rows?.length > 0) {
         toast.error(
-          "Cannot add submenu: Parent table must be empty (no items yet)."
+          "Cannot add submenu: Parent table must be empty (no items yet).",
         );
         return;
       }
@@ -360,7 +367,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             displayName: displayName.trim(),
             icon: "NotebookText",
           }),
-        }
+        },
       );
 
       if (!createRes.ok) {
@@ -444,7 +451,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
       if (!tableInfo) return;
 
       const chartTables = JSON.parse(
-        localStorage.getItem("chartTables") || "[]"
+        localStorage.getItem("chartTables") || "[]",
       );
 
       const exists = chartTables.some((t) => t.table_name === tableName);
@@ -489,7 +496,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
         // Find submenu entry for label
         const submenuList = submenuMap[parentId] || [];
         const submenuEntry = submenuList.find((sub) =>
-          sub.path.includes(tableName)
+          sub.path.includes(tableName),
         );
 
         if (!submenuEntry) {
@@ -503,7 +510,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
+          },
         );
 
         if (!res.ok) throw new Error("Failed to load table data");
@@ -533,7 +540,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
         onConfirm: () =>
           deleteTable(
             subContextMenu.subItem.tableName,
-            subContextMenu.subItem.parentId
+            subContextMenu.subItem.parentId,
           ),
       });
       return;
@@ -553,7 +560,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({ displayName: currentTableDisplayName }),
-        }
+        },
       );
 
       const result = await res.json();
@@ -572,7 +579,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
 
         if (parentId && newMap[parentId]) {
           newMap[parentId] = newMap[parentId].filter(
-            (sub) => !sub.path.includes(`/${tableName}`)
+            (sub) => !sub.path.includes(`/${tableName}`),
           );
           if (newMap[parentId].length === 0) delete newMap[parentId];
         }
@@ -584,7 +591,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
     } catch (err) {
       toast.error("Network error — failed to delete table");
     } finally {
-      setIsDeletingTable(false); 
+      setIsDeletingTable(false);
     }
   };
 
@@ -609,7 +616,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             icon,
             columns,
           }),
-        }
+        },
       );
 
       if (!res.ok) {
@@ -623,8 +630,8 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
         prev.map((t) =>
           t.table_name === oldName
             ? { ...t, display_name: displayName, icon }
-            : t
-        )
+            : t,
+        ),
       );
 
       fetchAllData();
@@ -684,7 +691,6 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
           collapsed ? "w-20" : "w-72"
         } transition-all duration-300 ease-in-out bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 flex flex-col h-screen relative`}
       >
-        {/* Logo */}
         <div className="flex p-6 border-b border-slate-200/50 dark:border-slate-700/50 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 via-orange-600 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -696,14 +702,13 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
                   Inventory
                 </h1>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Admin Panel
+                  {getPanelTitle()}
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
           {dataLoaded &&
             [
@@ -736,12 +741,12 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
             ]
               .filter(
                 (item) =>
-                  item && (!item.roles || item.roles.includes(user?.role))
+                  item && (!item.roles || item.roles.includes(user?.role)),
               )
               .map((item) => {
                 const isActive = location.pathname === item.path;
                 const isParentActive = item.submenu?.some(
-                  (sub) => location.pathname === sub.path
+                  (sub) => location.pathname === sub.path,
                 );
 
                 // Determine if this is a dynamic table item (has table- prefix) or static

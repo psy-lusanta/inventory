@@ -50,7 +50,7 @@ router.post("/:tableName", async (req, res) => {
           display_name = EXCLUDED.display_name, 
           icon = EXCLUDED.icon, 
           parent_group = EXCLUDED.parent_group;`,
-      [sanitizedTable, displayName, req.body.icon || "NotebookText", parentGroup || null]
+      [sanitizedTable, displayName, req.body.icon, parentGroup || null]
     );
 
     addNotification(`New table "${displayName}" created by ${req.user.employee_name}`, "create", "Plus");
