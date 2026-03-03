@@ -590,7 +590,7 @@ function DynamicTablePage() {
             }
 
             toast.success(result.message || "Record deleted successfully");
-            loadTable(); // ← now this will run
+            loadTable(); 
             triggerAppReload?.();
           } catch (err) {
             console.error("Delete error:", err);
