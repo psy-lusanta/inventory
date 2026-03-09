@@ -27,7 +27,6 @@ function AssetTagPrint({ row }) {
   const [open, setOpen] = useState(false);
   const qrRef = useRef(null);
 
-  // Get role from localStorage (same as DynamicTablePage)
   const role = JSON.parse(localStorage.getItem("user"))?.role || "viewer";
 
   if (!row) return null;

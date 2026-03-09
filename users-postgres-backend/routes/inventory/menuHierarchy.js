@@ -5,7 +5,6 @@ const { query, pool } = require("../../config/db.js");
 const { addNotification } = require("../../utils/addNotification.js");
 
 // GET /api/inventory/menu-hierarchy
-// Returns all submenus grouped by parent table
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
@@ -38,7 +37,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Create one or more submenus under a parent table
 router.post("/", async (req, res) => {
   const { parent_table_name, label, count = 1, submenu_path } = req.body;
 
@@ -93,7 +91,7 @@ router.post("/", async (req, res) => {
       const parentId = `table-${parent_table_name}`;
 
       addNotification(
-        `Created submenu under "${parent_table_name}" by ${req.user.employee_name}`,
+        `Created Submenu under "${parent_table_name}" by ${req.user.employee_name}`,
         "create",
         "Plus"
       );

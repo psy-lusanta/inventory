@@ -10,7 +10,7 @@ function NewTableModal({ isOpen, onClose, onCreate }) {
 
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconList, setIconList] = useState([]);
-  const [iconSearch, setIconSearch] = useState(""); // ← new search state
+  const [iconSearch, setIconSearch] = useState(""); 
 
   useEffect(() => {
     if (iconPickerOpen && iconList.length === 0) {
@@ -30,7 +30,6 @@ function NewTableModal({ isOpen, onClose, onCreate }) {
     }
   }, [iconPickerOpen]);
 
-  // Filter icons based on search term (case-insensitive)
   const filteredIcons = iconList.filter((iconName) =>
     iconName.toLowerCase().includes(iconSearch.toLowerCase().trim())
   );

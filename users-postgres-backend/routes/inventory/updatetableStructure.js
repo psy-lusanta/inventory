@@ -5,6 +5,14 @@ const { query, pool } = require("../../config/db.js");
 const sanitizeIdentifier = require("../../utils/sanitization/sanitizeIdentifiers.js");
 const { addNotification } = require("../../utils/addNotification.js");
 
+const quoteIfNeeded = (name) => {
+  if (!name) return name;
+  if (name.includes(" ") || /[^a-zA-Z0-9_]/.test(name)) {
+    return `"${name.replace(/"/g, '""')}"`;
+  }
+  return name;
+};
+
 router.put("/:tableName", async (req, res) => {
   const { tableName } = req.params;
   const { displayName, icon, columns } = req.body;
@@ -30,7 +38,7 @@ router.put("/:tableName", async (req, res) => {
           sanitizedTable,
           displayName?.trim() || sanitizedTable,
           icon || "NotebookText",
-        ]
+        ],
       );
 
       const currentRes = await client.query(
@@ -39,7 +47,7 @@ router.put("/:tableName", async (req, res) => {
          WHERE table_schema = 'inventory_items'
            AND table_name = $1
            AND column_name NOT IN ('id', 'asset_tag', 'created_at', 'created_by', 'updated_at', 'updated_by', 'status')`,
-        [sanitizedTable]
+        [sanitizedTable],
       );
 
       const currentCols = currentRes.rows.map((row) => ({
@@ -49,45 +57,67 @@ router.put("/:tableName", async (req, res) => {
 
       const desiredCols = columns
         .filter((col) => col.name?.trim())
-        .map((col) => ({
-          oldName: null, 
-          name: sanitizeIdentifier(col.name.trim()),
-          type: (col.type || "TEXT").toUpperCase(),
-        }));
+        .map((col) => {
+          let colName = col.name.trim();
+
+          if (!colName) return null;
+
+          return {
+            oldName: null,
+            name: colName,
+            type: (col.type || "TEXT").toUpperCase(),
+          };
+        })
+        .filter(Boolean);
 
       const minLength = Math.min(currentCols.length, desiredCols.length);
       for (let i = 0; i < minLength; i++) {
-        if (currentCols[i].name !== desiredCols[i].name) {
+        const desired = desiredCols[i];
+        if (!desired || !desired.name.trim()) {
+          console.warn(`Skipping invalid column at index ${i}`);
+          continue;
+        }
+
+        const quotedDesired = quoteIfNeeded(desired.name);
+        const quotedCurrent = quoteIfNeeded(currentCols[i].name);
+
+        if (currentCols[i].name !== desired.name) {
+          console.log(`Renaming ${quotedCurrent} → ${quotedDesired}`);
           await client.query(
             `ALTER TABLE inventory_items."${sanitizedTable}"
-             RENAME COLUMN "${currentCols[i].name}" TO "${desiredCols[i].name}"`
+       RENAME COLUMN ${quotedCurrent} TO ${quotedDesired}`,
           );
         }
 
-        if (currentCols[i].type !== desiredCols[i].type) {
+        if (currentCols[i].type !== desired.type) {
+          console.log(`Changing type for ${quotedDesired} to ${desired.type}`);
           await client.query(
             `ALTER TABLE inventory_items."${sanitizedTable}"
-             ALTER COLUMN "${desiredCols[i].name}" TYPE ${desiredCols[i].type} USING "${desiredCols[i].name}"::${desiredCols[i].type}`
+       ALTER COLUMN ${quotedDesired} TYPE ${desired.type}
+       USING ${quotedDesired}::${desired.type}`,
           );
         }
       }
 
       for (let i = currentCols.length; i < desiredCols.length; i++) {
+        const desired = desiredCols[i];
+        const quoted = quoteIfNeeded(desired.name);
         await client.query(
           `ALTER TABLE inventory_items."${sanitizedTable}"
-           ADD COLUMN IF NOT EXISTS "${desiredCols[i].name}" ${desiredCols[i].type}`
+     ADD COLUMN IF NOT EXISTS ${quoted} ${desired.type}`,
         );
       }
 
       for (let i = desiredCols.length; i < currentCols.length; i++) {
         const colToDrop = currentCols[i];
+        const quoted = quoteIfNeeded(colToDrop.name);
 
         const dataCheck = await client.query(
           `SELECT EXISTS (
-            SELECT 1 FROM inventory_items."${sanitizedTable}"
-            WHERE "${colToDrop.name}" IS NOT NULL
-            LIMIT 1
-          ) AS has_data`
+      SELECT 1 FROM inventory_items."${sanitizedTable}"
+      WHERE ${quoted} IS NOT NULL
+      LIMIT 1
+    ) AS has_data`,
         );
 
         if (dataCheck.rows[0].has_data) {
@@ -97,15 +127,16 @@ router.put("/:tableName", async (req, res) => {
           });
         }
 
-        // Safe to drop — no data
         await client.query(
           `ALTER TABLE inventory_items."${sanitizedTable}"
-           DROP COLUMN IF EXISTS "${colToDrop.name}"`
+     DROP COLUMN IF EXISTS ${quoted}`,
         );
       }
 
       addNotification(
-        `Updated "${displayName}" by ${req.user.employee_name}`, "update", "Edit3"
+        `Updated "${displayName}" by ${req.user.employee_name}`,
+        "update",
+        "Edit3",
       );
       await client.query("COMMIT");
       res.json({ message: "Table structure updated successfully" });

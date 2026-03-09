@@ -3,14 +3,12 @@ const router = express.Router();
 const { query, pool } = require("../../config/db.js");
 const { addNotification } = require("../../utils/addNotification.js");
 
-router.get("/test", (req, res) => res.json({ message: "rename route working" }));
-
 // POST /api/inventory/update-table-meta
 router.post("/", async (req, res) => {
   const { table_name, display_name, icon } = req.body;
 
   try {
-    if (!table_name) return res.status(400).json({ error: "table_name required" });
+    if (!table_name) return res.status(400).json({ error: "Tablename required" });
 
     await query(
       `UPDATE inventory_meta.tablename_icon

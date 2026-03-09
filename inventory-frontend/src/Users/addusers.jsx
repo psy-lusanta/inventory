@@ -46,7 +46,6 @@ export default function AddUserButton({ onAdd }) {
 
   return (
     <>
-      {/* Trigger Button */}
       <button
         onClick={() => setOpen(true)}
         className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow active:scale-95 cursor-pointer"

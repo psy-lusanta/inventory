@@ -40,7 +40,7 @@ export default function EditTableModal({
         tableData.display_name ||
           tableData.table_name
             .replace(/_/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase())
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
       );
       setIcon(tableData.icon || "NotebookText");
 
@@ -71,6 +71,14 @@ export default function EditTableModal({
 
   const handleSave = async () => {
     setLoading(true);
+
+    const hasEmptyColumn = columns.some((col) => !col.name?.trim());
+    if (hasEmptyColumn) {
+      toast.error("All column names must be filled in");
+      setLoading(false);
+      return;
+    }
+    
     const newDisplayName = displayName.trim();
     if (!newDisplayName) {
       toast.error("Display name is required");
@@ -131,7 +139,7 @@ export default function EditTableModal({
                 new_submenu_path: `/inventory/table/${newRawName}`,
                 new_label: newDisplayName,
               }),
-            }
+            },
           );
 
           if (!submenuRes.ok) {
@@ -163,7 +171,7 @@ export default function EditTableModal({
               icon,
               columns,
             }),
-          }
+          },
         );
 
         if (!structureRes.ok) {
@@ -182,7 +190,7 @@ export default function EditTableModal({
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
             body: JSON.stringify(metaPayload),
-          }
+          },
         );
 
         if (!metaRes.ok) throw new Error("Metadata update failed");
@@ -255,7 +263,9 @@ export default function EditTableModal({
                 Custom Columns
               </label>
               <button
-                onClick={() => setColumns([...columns, { name: "", type: "text" }])}
+                onClick={() =>
+                  setColumns([...columns, { name: "", type: "text" }])
+                }
                 disabled={loading}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors"
               >
@@ -278,7 +288,9 @@ export default function EditTableModal({
                     <input
                       type="text"
                       value={col.name}
-                      onChange={(e) => updateColumn(index, "name", e.target.value)}
+                      onChange={(e) =>
+                        updateColumn(index, "name", e.target.value)
+                      }
                       placeholder="Column name"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                       disabled={loading}
@@ -329,8 +341,20 @@ export default function EditTableModal({
             {loading ? (
               <>
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
                 Saving...
               </>

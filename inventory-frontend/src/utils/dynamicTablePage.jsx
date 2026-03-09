@@ -137,8 +137,31 @@ function DynamicTablePage() {
     tableName.charAt(0).toUpperCase() + tableName.slice(1).toLowerCase();
 
   function formatColumnName(col) {
-    return col.replace(/_/g, " ");
+  let name = col.replace(/^"|"$/g, '').trim();
+
+  if (name.includes(' ')) {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
+
+  if (name.includes('_')) {
+    return name
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  return name
+    .replace(/([A-Z])/g, ' $1')             
+    .replace(/\s+/g, ' ')                   
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
   const visibleColumns = columns.filter(
     (col) =>
@@ -590,13 +613,13 @@ function DynamicTablePage() {
             }
 
             toast.success(result.message || "Record deleted successfully");
-            loadTable(); 
+            loadTable();
             triggerAppReload?.();
           } catch (err) {
             console.error("Delete error:", err);
             toast.error(err.message || "Failed to delete record");
           } finally {
-            setIsDeleteModalOpen(false); 
+            setIsDeleteModalOpen(false);
           }
         }}
       />

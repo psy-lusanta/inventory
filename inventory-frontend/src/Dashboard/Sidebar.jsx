@@ -881,7 +881,7 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
               />
               <div>
                 <h2 className="text-sm font-semibold text-slate-800 dark:text-white">
-                  {user?.username || "User"}
+                  {user?.employee_name || "User"}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {user?.role === "administrator" ? "Administrator" : "Viewer"}
@@ -892,7 +892,6 @@ function Sidebar({ collapsed, reload, onToggle, onPinUpdate }) {
         )}
       </div>
 
-      {/* Context Menu */}
       <ContextMenu
         visible={contextMenu.visible}
         x={contextMenu.x}

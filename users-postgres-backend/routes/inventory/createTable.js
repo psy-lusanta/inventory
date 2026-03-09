@@ -21,8 +21,15 @@ router.post("/:tableName", async (req, res) => {
     const sanitizedTable = sanitizeIdentifier(tableName);
 
     const colSql = columns
-      .filter((col) => col.name && col.type)
-      .map((col) => `${sanitizeIdentifier(col.name)} ${col.type}`)
+      .filter((col) => col.name?.trim())
+      .map((col) => {
+        const colName = col.name.trim();
+        const quotedName =
+          colName.includes(" ") || /[^a-zA-Z0-9_]/.test(colName)
+            ? `"${colName}"`
+            : colName;
+        return `${quotedName} ${col.type.toUpperCase()}`;
+      })
       .join(",\n");
 
     const systemCols = `
@@ -50,10 +57,14 @@ router.post("/:tableName", async (req, res) => {
           display_name = EXCLUDED.display_name, 
           icon = EXCLUDED.icon, 
           parent_group = EXCLUDED.parent_group;`,
-      [sanitizedTable, displayName, req.body.icon, parentGroup || null]
+      [sanitizedTable, displayName, req.body.icon, parentGroup || null],
     );
 
-    addNotification(`New table "${displayName}" created by ${req.user.employee_name}`, "create", "Plus");
+    addNotification(
+      `New table "${displayName}" created by ${req.user.employee_name}`,
+      "create",
+      "Plus",
+    );
     res.json({
       message: `Table '${sanitizedTable}' created successfully.`,
     });
